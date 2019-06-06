@@ -1,0 +1,248 @@
+{% extends "common/default-base.html" %}
+{% load documentation_filters %}
+{% load basic_filters %}
+
+{% block base-href %}
+{% endblock %}
+
+{% block header %}{% include "ui/page/PageHeader-active-learn.html" %}{% endblock %}
+
+{% block content %}
+    <div class="typography-default">
+        {% include "learn/partials/sub-menu.html" with active="ref" %}
+
+        <div class="Container documentation">
+                <div class="not-xs not-sm menu menu-doc">
+                    {% for section in menu %}
+                        <h4>{{ section.name }}</h4>
+                        <ul>
+                            {% for document in section.items|dictsort:"name" %}
+                                <li {% if document_name == document.path %}class="active"{% endif %}>
+                                    <a href="/ref/{{ document.path|seo_url }}/{{ query_string }}">{{ document.name }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endfor %}
+                </div>
+
+
+                <div class="not-lg not-md">
+                    <h5>- Select ref document -</h5>
+                    <select onchange="window.location.href=this.value">
+                        {% for section in menu %}
+                            {% for document in section.items %}
+                                <option value="/ref/{{ document.path|seo_url }}/{{ query_string }}"
+                                        {% if document_name == document.path %}selected{% endif %}>{{ document.name }}</option>
+                            {% endfor %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div id="page-content" class="markdown apiref">
+                    <div class="body-wide">
+                        <h1 class="not-xs not-sm">{{ ref.info.brief|safe }}</h1>
+                        <p class="apiref-version">version {{ ref.info.version }}</p>
+                        <p class="apiref-brief">{{ ref.info.description|safe }}</p>
+
+                        <div class="apiref-quicknav">
+                            {% if ref.functions|length > 0 %}
+                                <h4>Functions</h4>
+                                <div class="flex-table">
+                                    {% for e in ref.functions %}
+                                        <a href="#{{ e.name }}{{ e.parameters|parameter_fragment }}" class="flex-row">
+                                            <span class="flex-cell">{{ e.name }}</span>
+                                            <span class="flex-cell">{{ e.brief|safe }}</span>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if ref.methods|length > 0 %}
+                                <h4>Methods</h4>
+                                <div class="flex-table">
+                                    {% for e in ref.methods %}
+                                        <span class="flex-row">
+                                    <span class="flex-cell">
+                                    {% for o in e.objects %}
+                                        <div>
+                                        <a href="#{{ o.name }}{{ e.name }}{{ e.parameters|parameter_fragment }}">
+                                            <span class="object-type">{{ o.name }}</span>{{ e.name }}
+                                        </a>
+                                        </div>
+                                    {% endfor %}
+                                    </span>
+                                    <span class="flex-cell">{{ e.brief|safe }}</span>
+                                </span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+
+                            {% if ref.macros|length > 0 %}
+                                <h4>Macros</h4>
+                                <div class="flex-table">
+                                    {% for e in ref.macros %}
+                                        <a href="#{{ e.name }}{{ e.parameters|parameter_fragment }}" class="flex-row">
+                                            <span class="flex-cell">{{ e.name }}</span>
+                                            <span class="flex-cell">{{ e.brief|safe }}</span>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if ref.messages|length > 0 %}
+                                <h4>Messages</h4>
+                                <div class="flex-table">
+                                    {% for e in ref.messages %}
+                                        <a href="#{{ e.name }}{{ e.parameters|parameter_fragment }}" class="flex-row">
+                                            <span class="flex-cell">{{ e.name }}</span>
+                                            <span class="flex-cell">{{ e.brief|safe }}</span>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if ref.constants|length > 0 %}
+                                <h4>Constants</h4>
+                                <div class="flex-table">
+                                    {% for e in ref.constants %}
+                                        <a href="#{{ e.name }}{{ e.parameters|parameter_fragment }}" class="flex-row">
+                                            <span class="flex-cell">{{ e.name }}</span>
+                                            <span class="flex-cell">{{ e.brief|safe }}</span>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if ref.properties|length > 0 %}
+                                <h4>Properties</h4>
+                                <div class="flex-table">
+                                    {% for e in ref.properties %}
+                                        <a href="#{{ e.name }}{{ e.parameters|parameter_fragment }}" class="flex-row">
+                                            <span class="flex-cell">{{ e.name }}</span>
+                                            <span class="flex-cell">{{ e.brief|safe }}</span>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+
+                            {% if ref.structs|length > 0 %}
+                                <h4>Structs</h4>
+                                <div class="flex-table">
+                                    {% for e in ref.structs %}
+                                        <a href="#{{ e.name }}{{ e.members|parameter_fragment }}" class="flex-row">
+                                            <span class="flex-cell">{{ e.name }}</span>
+                                            <span class="flex-cell">{{ e.brief|safe }}</span>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if ref.typedefs|length > 0 %}
+                                <h4>Typedefs</h4>
+                                <div class="flex-table">
+                                    {% for e in ref.typedefs %}
+                                        <a href="#{{ e.name }}{{ e.members|parameter_fragment }}" class="flex-row">
+                                            <span class="flex-cell">{{ e.name }}</span>
+                                            <span class="flex-cell">{{ e.brief|safe }}</span>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+
+                            {% if ref.enums|length > 0 %}
+                                <h4>Enumerations</h4>
+
+                                {% for e in ref.enums %}
+                                    <a href="#{{ e.name }}{{ e.members|parameter_fragment }}"
+                                       class="enum">{{ e.name }}</a>
+                                    <div class="flex-table">
+                                        {% if e.members|length > 0 %}
+                                            {% for m in e.members %}
+                                                <a href="#{{ e.name }}{{ e.members|parameter_fragment }}"
+                                                   class="flex-row">
+                                                    <span class="flex-cell">{{ m.name }}</span>
+                                                    <span class="flex-cell no-border"></span>
+                                                </a>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+
+                        </div>
+
+                        {% if ref.functions|length > 0 %}
+                            <h2>Functions</h2>
+                            {% for e in ref.functions %}
+                                {% include "ref/partials/entry.html" with doc=document_name entry=e %}
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if ref.macros|length > 0 %}
+                            <h2>Macros</h2>
+                            {% for e in ref.macros %}
+                                {% include "ref/partials/entry.html" with doc=document_name entry=e %}
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if ref.messages|length > 0 %}
+                            <h2>Messages</h2>
+                            {% for e in ref.messages %}
+                                {% include "ref/partials/entry.html" with entry=e %}
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if ref.constants|length > 0 %}
+                            <h2>Constants</h2>
+                            {% for e in ref.constants %}
+                                <div class="constants">{% include "ref/partials/entry.html" with entry=e %}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if ref.properties|length > 0 %}
+                            <h2>Properties</h2>
+                            {% for e in ref.properties %}
+                                {% include "ref/partials/entry.html" with entry=e %}
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if ref.structs|length > 0 %}
+                            <h2>Structs</h2>
+                            {% for e in ref.structs %}
+                                {% include "ref/partials/entry.html" with entry=e %}
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if ref.typedefs|length > 0 %}
+                            <h2>Typedefs</h2>
+                            {% for e in ref.typedefs %}
+                                {% include "ref/partials/entry.html" with entry=e %}
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if ref.enums|length > 0 %}
+                            <h2>Enumerations</h2>
+                            {% for e in ref.enums %}
+                                {% include "ref/partials/entry.html" with entry=e %}
+                            {% endfor %}
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+
+        {% include "learn/partials/error-report.html" %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+      Defold.Scroll.classIfReached('sub-menu-wrapper', 100)
+      window.addEventListener('scroll', Defold.Helpers.throttle(function () {
+        Defold.Scroll.classIfReached('sub-menu-wrapper', 100)
+      }, 50), true)
+    </script>
+{% endblock %}

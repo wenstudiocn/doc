@@ -1,0 +1,87 @@
+{% load basic_filters %}
+{% block base %}
+    <!doctype html>
+    <html lang="{{ meta.lang|default:'en' }}"{% if smooth_scroll %} class="smooth-scroll"{% endif %}>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <script>window.dataLayer = [{'newAccessFlow': 'Yes'}]; </script>
+
+        {% include 'common/partials/google-tag-manager-head.html' %}
+
+        {# Google webmaster tools verification #}
+        <meta name="google-site-verification" content="WE-joe95ouEgJ7NbjxNPub0daWsGflKcTehN1cNdUfE" />
+
+        {# BASIC META DATA #}
+        <title>{{ meta.title|default:"Defold: Free 2D Game Engine for Cross-Platform Publishing" }}</title>
+        <meta name="description"
+              content="{{ meta.description|default:'Defold is a multi-platform game engine that simplifies development of 2D games for all major platforms – HTML5, Android, iOS, Windows, Mac OS X and Linux' }}">
+
+        <!-- SOCIAL META DATA -->
+        <meta property="og:site_name" content="{{ meta.og.site_name|default:'Defold game engine' }}">
+        <meta property="og:title" content="{{ meta.og.title|default:'Free 2D Game Engine for Cross-Platform Publishing' }}">
+        <meta property="og:description"
+              content="{{ meta.og.description|default:'Defold is a multi-platform game engine that simplifies development of 2D games for all major platforms – HTML5, Android, iOS, Windows, Mac OS X and Linux' }}">
+        <meta property="og:image" content="{{ meta.og.image|default:'https://www.defold.com/static/social/facebook-share.jpg' }}">
+
+        <meta name="twitter:card" content="{{ meta.twitter.card|default:'summary_large_image' }}">
+        <meta name="twitter:site" content="{{ meta.twitter.site|default:'@defold' }}">
+        <meta name="twitter:title"
+              content="{{ meta.twitter.title|default:'Free 2D Game Engine for Cross-Platform Publishing' }}">
+        <meta name="twitter:description"
+              content="{{ meta.twitter.description|default:'Defold is a multi-platform game engine that simplifies development of 2D games for all major platforms – HTML5, Android, iOS, Windows, Mac OS X and Linux' }}">
+        <meta name="twitter:image"
+              content="{{ meta.twitter.image|default:'https://www.defold.com/static/social/twitter-share.jpg' }}">
+
+        {% block meta %}{# Additional meta tags #}{% endblock %}
+        {% include 'common/partials/google-apis.html' %}
+
+        <style>
+            html {height: 100%;}
+            body{
+                display: flex;
+                flex-direction: column;
+                min-height: 100%;
+                margin:0;
+            }
+            body > section {flex: 1;display: flex;flex-direction: column;}
+            .content-placeholder{flex: 1;display:flex;align-items:center;justify-content:center;margin:1em;min-height:50vh;}
+        </style>
+
+        {# FONTS #}
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" rel="stylesheet">
+
+        {# FAVICON #}
+        <link rel="shortcut icon" href="//www.defold.com/static/favicon.ico" type="image/x-icon" />
+    </head>
+    <body class="{% block bodyclass %}Body--default{% endblock %}">
+
+    {% include 'common/partials/google-tag-manager-noscript.html' %}
+
+    <section>
+        {% block header %}
+            {% if not hide_header %}
+                {% include "ui/page/PageHeader-active-community.html" %}
+            {% endif %}
+        {% endblock %}
+
+        {% block content %}
+        {% endblock %}
+    </section>
+
+    {% block footer %}{% if not hide_footer %}{% include "ui/page/PageFooter.html" %}{% endif %}{% endblock %}
+
+    {% block popups %}{% endblock %}
+
+    <div data-mount-help-menu></div>
+    <div data-mount-overlays></div>
+
+    {% if settings.UI_DEV_TOOLS %}<div data-mount-dev-tools></div>{% endif %}
+
+    {% block scripts %}{% endblock %}
+
+</body>
+    </html>
+{% endblock %}

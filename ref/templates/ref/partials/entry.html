@@ -1,0 +1,139 @@
+{% load documentation_filters %}
+{% load basic_filters %}
+
+<section>
+      {% if entry.parameters|length > 0 %}
+        <a name="{{ entry.name }}{{ entry.parameters|parameter_fragment }}" class="anchor"></a>
+        <a name="{{ entry.name }}" class="anchor"></a>
+        <h3>
+        {{ entry.name }}
+        <a href="#{{ entry.name }}{{ entry.parameters|parameter_fragment }}">
+        <span class="anchor-link"></span>
+        </a></h3>
+      {% elif entry.members|length > 0 %}
+        <a name="{{ entry.name }}{{ entry.members|parameter_fragment }}" class="anchor"></a>
+        <a name="{{ entry.name }}" class="anchor"></a>
+        <h3>
+        {{ entry.name }}
+        <a href="#{{ entry.name }}{{ entry.members|parameter_fragment }}">
+        <span class="anchor-link"></span>
+        </a></h3>
+      {% else %}
+        <a name="{{ entry.name }}" class="anchor"></a>
+        <h3>
+        {{ entry.name }}
+        <a href="#{{ entry.name }}">
+        <span class="anchor-link"></span>
+        </a></h3>
+      {% endif %}
+
+    <p class="ref-entry-signature">{{ entry.signature|safe }}</p>
+
+  <p>{{ entry.description|safe }}</p>
+
+  {% if entry.parameters|length > 0 %}
+    {% if entry.type == "MESSAGE" %}
+    <h4>Fields</h4>
+    {% else %}
+    <h4>Parameters</h4>
+    {% endif %}
+    <table class="not-xs">
+      <tbody>
+        {% for p in entry.parameters %}
+        <tr>
+          <td>
+            <code>{{ p.name|safe }}</code>
+          </td>
+          <td>
+          {{ p.doc|safe }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="not-sm not-md not-lg">
+      <dl>
+        {% for p in entry.parameters %}
+          <dt><code>{{ p.name|safe }}</code></dt>
+          <dd>{{ p.doc|safe }}</dd>
+        {% endfor %}
+      </dl>
+    </div>
+  {% endif %}
+
+
+  {% if entry.members|length > 0 %}
+    <h4>Members</h4>
+    <table class="not-xs">
+      <tbody>
+        {% for p in entry.members %}
+        <tr>
+          <td>
+            <code>{{ p.name|safe }}</code>
+          </td>
+          <td>
+          {{ p.doc|safe }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="not-sm not-md not-lg">
+      <dl>
+        {% for p in entry.members %}
+          <dt><code>{{ p.name|safe }}</code></dt>
+          <dd>{{ p.doc|safe }}</dd>
+        {% endfor %}
+      </dl>
+    </div>
+  {% endif %}
+
+
+  {% if entry.note|length > 0 %}
+    <div class="alert alert-icn alert-warning">
+      {{ entry.note|safe }}
+    </div>
+  {% endif %}
+
+
+  {% if entry.returnvalues|length > 0 %}
+  <h4>Returns</h4>
+  <table class="not-xs">
+    <tbody>
+      {% for r in entry.returnvalues %}
+      <tr>
+        <td>
+          <code>{{ r.name|safe }}</code>
+        </td>
+        <td>
+        {{ r.doc|safe }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="not-sm not-md not-lg">
+    <dl>
+      {% for r in entry.returnvalues %}
+      <dt><code>{{ r.name|safe }}</code></dt>
+      <dd>{{ r.doc|safe }}</dd>
+      {% endfor %}
+    </dl>
+  </div>
+  {% endif %}
+
+
+  {% if entry.error|length > 0 %}
+  <h4>Error</h4>
+  {{ entry.error|safe }}
+  {% endif %}
+
+
+  {% if entry.examples|length > 0 %}
+  <h4>Examples</h4>
+  {{ entry.examples|safe }}
+  {% endif %}
+</section>
