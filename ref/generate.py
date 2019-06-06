@@ -263,7 +263,7 @@ def generate(sha1_or_latest):
         for namespace in jsondata:
             index[namespace] = jsondata[namespace]['info']
 
-        directory = os.path.join("out", sha1)
+        directory = os.path.join("out", sha1, "ref")
         if not os.path.exists(directory):
             os.makedirs(directory)
 

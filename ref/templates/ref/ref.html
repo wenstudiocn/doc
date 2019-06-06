@@ -18,7 +18,7 @@
                         <ul>
                             {% for document in section.items|dictsort:"name" %}
                                 <li {% if document_name == document.path %}class="active"{% endif %}>
-                                    <a href="/ref/{{ document.path|seo_url }}/{{ query_string }}">{{ document.name }}</a>
+                                    <a href="/ref/{{ document.path|seo_url }}.html{{ query_string }}">{{ document.name }}</a>
                                 </li>
                             {% endfor %}
                         </ul>
