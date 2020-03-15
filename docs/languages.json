@@ -11,6 +11,11 @@
             "name": "한국어 (Korean)",
             "translation": "Translation by Kiman Kim",
             "active": false
+        },
+        "zh-CHS":
+        {
+            "name": "中文(简体)",
+            "active": false
         }
     }
 }
