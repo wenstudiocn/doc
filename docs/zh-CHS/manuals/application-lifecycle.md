@@ -1,41 +1,41 @@
 ---
 title: Defold application lifecycle manual
-brief: This manual details the lifecycle of Defold games and applications.
+brief: 本手册详细介绍了 Defold 游戏和应用程序的生命周期.
 ---
 
-# Application lifecycle
+# 应用程序生命周期
 
-The lifecycle of a Defold application or game is on the large scale simple. The engine moves through three stages of execution: initialization, the update loop (where apps and games spend most of their time) and finalization.
+Defold 应用程序或游戏的生命周期非常简单。引擎经历了三个执行阶段：初始化，更新循环（应用程序和游戏大部分时间都花在其中）和终结。
 
-![Lifecycle overview](images/application_lifecycle/application_lifecycle_overview.png)
+![生命周期概述](images/application_lifecycle/application_lifecycle_overview.png)
 
-In many cases only a rudimentary understanding of Defold's inner workings is necessary. However, you might run into edge cases where the exact order Defold carries out its tasks becomes vital. This document describes how the engine runs an application from start to finish.
+在许多情况下，对 Defold 的内部运作有基本的了解是有必要的。但是，您可能会遇到极端情况，在这些情况下，准确执行 Defold 的任务变得至关重要。本文档描述了引擎从头到尾如何运行应用程序.
 
-The application starts by initializing everything that is needed to run the engine. It loads the main collection and calls [`init()`](/ref/go#init) on all loaded components that have an `init()` Lua function (script components and GUI components with GUI scripts). This allows you to do custom initialization.
+该应用程序首先初始化运行引擎所需的所有内容。它加载主 collection，并在所有具有 `init()` 函数的已加载 components (脚本 components 和 带有 GUI 脚本的 GUI components )上调用 [`init()`](/ref/go#init)。这使您可以进行自定义初始化.
 
-The application then enters the update loop where the application will spend the majority of its lifetime. Each frame, game objects and the components they contain are updated. Any script and GUI script [`update()`](/ref/go#update) functions are called. During the update loop messages are dispatched to their recipients, sounds are played and all graphics are rendered.
+然后，应用程序进入更新循环，在该循环中，应用程序将花费其生命周期的大部分时间。每帧中，游戏对象及其包含的组件都会更新。任何脚本和 GUI 脚本的 [`update()`](/ref/go#update) 函数都将被调用。在更新循环期间，消息将分发给它们的接受者，并播放声音并渲染所有图形.
 
-At some point the application's lifecycle will come to an end. Before the application quits the engine steps out of the update loop and enters a finalization stage. It prepares all loaded game objects for deletion. All object components’ [`final()`](/ref/go#final) functions are called, which allows for custom cleanup. Then the objects are deleted and the main collection is unloaded.
+在某个时候，应用程序的生命周期将结束。在应用程序退出之前，引擎会退出更新循环并进入最终确定阶段。它准备删除所有已加载的游戏对象。调用了所有对象组件的 [`final()`](/ref/go#final) 函数，该函数允许自定义清除。然后删除对象，并卸载主 collection.
 
-## Initialization
+## 初始化
 
-This diagram contains a more detailed breakdown of the initialization steps. The steps involved in the "dispatch messages" pass (right before "spawn dynamic objects") have been put in a separate block to the right for clarity.
+此图包含初始化步骤的详细细节。为了清楚起见，"dispatch messages" 传递中涉及的步骤（紧接在 "spawn dynamic objects" 之前）已置于右侧的单独块中.
 
-![Lifecycle overview](images/application_lifecycle/application_lifecycle_init.png)
+![生命周期概述](images/application_lifecycle/application_lifecycle_init.png)
 
-The engine actually takes many more steps during initialization, before the main collection is loaded. The memory profiler, sockets, graphics, HID (input devices), sound, physics and much more are set up. The application configuration ("game.project") is also loaded and set up.
+在加载主 collection 之前，引擎实际上在初始化过程中采取了更多步骤。设置了内存探查器，套接字，图形，HID（输入设备），声音，物理等。应用程序配置 ("game.project") 也已加载并设置.
 
-The first user-controllable entry point, at the end of engine initialization, is the call to the current render script’s `init()` function.
+在引擎初始化结束时，第一个用户可控制的入口点是对当前渲染脚本的  `init()` 函数的调用.
 
-The main collection is then loaded and initialized. All game objects in the collection apply their transforms (translation (change of position), rotation and scaling) to their children. All component `init()` functions that exist are then called.
+然后加载主 collection 并进行初始化。collection 中的所有游戏对象都将其变换（平移（位置变化），旋转和缩放）应用于其子级。然后调用所有存在的组件 `init()` 函数.
 
 ::: sidenote
-The order in which game object component `init()` functions are called is unspecified. You should not assume that the engine initializes objects belonging to the same collection in a certain order.
+游戏对象组件 `init()`  函数的调用顺序是不确定的。您不应该假定引擎以某种顺序初始化属于同一集合的对象.
 :::
 
-Since your `init()` code can post new messages, tell factories to spawn new objects, mark objects for deletion and do all sorts of things, the engine performs a full "post-update" pass next. This pass carries out message delivery, the actual factory game object spawning and object deletion. Note that the post-update pass includes a "dispatch messages" sequence that not only sends any queued messages but also handles messages sent to collection proxies. Any subsequent updates on the proxies (enable and disable, loading and mark for unloading) are performed during those steps.
+由于您的 `init()` 代码可以发布新消息，告诉工厂生成新对象，将对象标记为删除并进行各种操作，因此引擎接下来将执行完整的 "post-update" 过程。此过程执行消息传递，实际的工厂游戏对象生成和对象删除。请注意，更新后传递包括 "dispatch messages"  序列，该序列不仅发送任何排队的消息，而且还处理发送到 collection proxies 的消息。在这些步骤中，将对代理进行任何后续更新（启用和禁用，加载和标记为卸载）.
 
-Studying the diagram above reveals that it is fully possible to load a [collection proxy](/manuals/collection-proxy) during `init()`, ensure all its contained objects are initialized, and then unload the collection through the proxy---all this before the first component `update()` is called, i.e. before the engine has left the initialization stage and entered the update loop:
+研究上面的图可以发现，有可能在 `init()` 期间完全加载 [collection proxy](/manuals/collection-proxy)，确保所有包含的对象都已初始化，然后通过代理卸载 collection --- 所有这些操作发生在调用第一个组件 `update()` 之前，即在引擎离开初始化阶段并进入更新循环之前:
 
 ```lua
 function init(self)
@@ -60,60 +60,60 @@ function on_message(self, message_id, message, sender)
 end
 ```
 
-## The update loop
+## 更新循环
 
-The update loop runs through a long sequence once every frame. The update sequence in the diagram below is divided into logical sequence blocks for clarity. "Dispatch messages" is also broken out separately for the same reason:
+更新循环每帧执行一次较长的序列。 为了清楚起见，下图中的更新序列分解为逻辑序列块。 出于相同的原因，"Dispatch messages" 也分开显示:
 
-![Update loop](images/application_lifecycle/application_lifecycle_update.png)
+![更新循环](images/application_lifecycle/application_lifecycle_update.png)
 
-## Input
+## 输入
 
-Input is is read from available devices, mapped against [input bindings](/manuals/input) and then dispatched. Any game object that has acquired input focus gets input sent to all its components' `on_input()` functions. A game object with a script component and a GUI component with a GUI script will get input to both components’ `on_input()` functions---given that they are defined and that they have acquired input focus.
+从可用设备中读取输入，将其映射到 [input bindings](/manuals/input)，然后进行分派。 任何获得输入焦点的游戏对象都会将输入发送到其所有组件的 `on_input()` 函数。 带有脚本组件的游戏对象和带有GUI脚本的GUI组件将通过 `on_input()` 函数获得输入-前提是它们已定义且已获得输入焦点.
 
-Any game object that has acquired input focus and contains collection proxy components dispatches input to components inside the proxy collection. This process continues recursively down enabled collection proxies within enabled collection proxies.
+任何获得输入焦点并包含 collection proxy 组件的游戏对象都会将输入分发到代理集合内的组件。 该过程递归地向下进行.
 
 ## Update
 
-Each game object component in the main collection is traversed. If any of these components has a script `update()` function, then that will be called. If the component is a collection proxy, each component in the proxy collection is recursively updated with all the steps in the "update" sequence in the diagram above.
+遍历主集合中的每个游戏对象组件。如果这些组件中的任何一个具有脚本 `update()` 函数，则将调用该函数。如果组件是 collection proxy，则使用上图中 "update" 序列中的所有步骤以递归方式更新代理 collection 中的每个组件。
 
 ::: sidenote
-The order in which game object component `update()` functions are called is unspecified. You should not assume that the engine updates objects belonging to the same collection in a certain order.
+游戏对象组件 `update()` 函数的调用顺序是不确定的。您不应假定引擎以特定顺序更新属于同一 collection 的对象.
 :::
 
-In the next step all posted messages are dispatched. Since any receiver components’ `on_message()` code can post additional messages the message dispatcher will continue to dispatch posted messaged until the message queue is empty. There is, however, a limit to how many runs through the message queue the message dispatcher performs. See [Message passing](/manuals/message-passing) and the section "Advanced topics" for details.
+在下一步中，将分派所有已发布的消息。由于任何接收方组件的 `on_message()` 代码都可以发布新的消息，因此消息分发程序将继续分发已发布的消息，直到消息队列为空。但是，在消息分发程序执行的整个消息队列中运行的次数是有限制的。有关详细信息，请参见 [消息传递](/manuals/message-passing) 和 "Advanced topics" 部分.
 
-For collision object components, physics messages (collisions, triggers, ray_cast responses etc) are dispatched throughout the encompassing game object to all components that contain a script with an `on_message()` function.
+对于碰撞对象组件，物理消息（碰撞，触发器，ray_cast 响应等）将在整个 game object 中分发到所有包含具有 `on_message()` 函数的脚本的组件
 
-Transforms are then done, applying any game object movement, rotation and scaling to each game object component and any child game object components.
+然后完成变换，将任何 game object 的移动，旋转和缩放应用于每个 game object 组件和任何子 game object 组件.
 
-## Render update
+## 渲染更新
 
-The render update block dispatches messages to the `@render` socket (camera component `set_view_projection` messages, `set_clear_color` messages etc). The render script `update()` is then called.
+渲染更新块将消息调度到 `@render` 套接字（相机组件 `set_view_projection` 消息，`set_clear_color` 消息等）。 然后调用渲染脚本 `update()` 。
 
-## Post update
+## 更新后
 
-After the updates, a post update sequence is run. It unloads from memory collection proxies that are marked for unloading (this happens during the "dispatch messages" sequence). Any game object that is marked for deletion will call all of its components’ `final()` functions, if there are any. The code in `final()` functions often posts new messages to the queue so a "dispatch messages" pass is run afterwards.
+更新后，将运行更新后过程。它从标记为卸载的 collection proxies 内存中执行卸载（这在 "dispatch messages" 过程中发生）。任何标记为删除的游戏对象都会调用其所有组件的  `final()`  函数（如果有的话）。 “ `final()`  函数中的代码通常将新消息发布到队列中，因此此后将运行 "dispatch messages" 过程.
 
-Any factory component that has been told to spawn a game object will do that next. Finally, game objects that are marked for deletion are actually deleted.
+接下来，任何被告知生成游戏对象的工厂组件都将执行此操作。最后，标记为删除的游戏对象被删除.
 
-The last step in the update loop involves dispatching `@system` messages (`exit`, `reboot` messages, toggling the profiler, starting and stopping video capture etc). Then graphics are rendered. During the graphics rendering, video capture is done, as is any rendering of the visual profiler (see the [Debugging documentation](/manuals/debugging).)
+更新循环的最后一步涉及调度 `@system` 消息（`exit`, `reboot` 消息，切换事件探查器状态，开始和停止视频捕获等）。然后渲染图形。在图形渲染期间，视频捕获以及可视分析器的任何渲染均已完成（请参见[调试文档](/manuals/debugging)。）
 
-## Frame rate and collection time step
+## 帧率和 collection 时间步长
 
-The number of frame updates per second (which equals the number of update-loop runs per second) can be set in the project settings, or programmatically by sending a `set_update_frequency` message to the `@system` socket. In addition, it is possible to set the _time step_ for collection proxies individually by sending a `set_time_step` message to the proxy. Changing a collection's time step does not affect the frame rate. It does affect the physics update time step as well as the `dt` variable passed to `update().` Also note that altering the time step does not alter the number of times `update()` will be called each frame---it is always exactly once.
+可以在项目设置中设置每秒的帧更新次数（等于每秒执行更新循环的次数），也可以通过向 `@system` 套接字发送 `set_update_frequency` 消息来设置。 另外，可以通过向 collection proxies  发送 `set_time_step` 消息来为 collection proxies  单独设置 _时间步长_。 更改 collection 的时间步长不会影响帧速率。 它确实会影响物理更新时间步长以及传递给  `update()` 的 dt 变量。还要注意，更改时间步长不会改变每帧调用 `update()` 的次数- -它总是恰好一次。
 
-(See the [Collection proxy manual](/manuals/collection-proxy) and [`set_time_step`](/ref/collectionproxy#set-time-step) for details)
+(有关详细信息，请参见 [Collection proxy manual](/manuals/collection-proxy) 和 [`set_time_step`](/ref/collectionproxy#set-time-step))
 
-## Finalization
+## 终结
 
-When the application exits, first it finishes the last update loop sequence, which will unload any collection proxies: finalizing and deleting all game objects in each proxy collection.
+当应用程序退出时，它首先完成最后一个更新循环序列，这将卸载所有 collection proxies：终结并删除每个代理集合中的所有游戏对象
 
-When that is done the engine enters a finalization sequence that handles the main collection and its objects:
+完成此操作后，引擎将输入一个处理主集合及其对象的终结过程：
 
-![Finalization](images/application_lifecycle/application_lifecycle_final.png)
+![终结](images/application_lifecycle/application_lifecycle_final.png)
 
-Component `final()` functions are called first. A subsequent dispatching of messages follows. Finally, all game objects are deleted and the main collection is unloaded.
+首先调用组件的 `final()` 函数。 随后进行消息的分派。 最后，所有游戏对象均被删除，并且主 collection 被卸载。
 
-The engine follows up with behind the scenes shutting down of subsystems: project configuration is deleted, the memory profiler is shut down, and so forth.
+引擎在幕后关闭子系统：删除项目配置，关闭内存探查器，依此类推。
 
-The application is now completely shut down.
+现在，该应用程序已完全关闭。
